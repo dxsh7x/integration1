@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration ~dxsh</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for crisp, fast LaTeX math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar & Subtle Utilities */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .katex-display {
+            margin: 0.75em 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <!-- Top Navigation & Mastery Bar -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
+                <!-- Brand Logo -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-violet-600 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-brand-500/20">
+                            &int;
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-extrabold tracking-tight text-slate-900 leading-none">Inte<span class="text-brand-600">gration</span></h1>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">~dxsh</p>
+                        </div>
+                    </div>
+                    <!-- Mobile Score Badge -->
+                    <div class="flex md:hidden items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700">
+                        <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-500"></i>
+                        <span id="mobile-streak">0</span>
+                        <span class="text-slate-300">|</span>
+                        <span id="mobile-xp" class="text-brand-600">0 XP</span>
+                    </div>
+                </div>
+
+                <!-- Progressive Mastery Path Stepper -->
+                <nav aria-label="Mastery Levels" class="flex items-center overflow-x-auto pb-1 md:pb-0 gap-1.5 sm:gap-2">
+                    <button onclick="selectLevel(1)" id="nav-lvl-1" class="level-pill flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border bg-brand-600 text-white border-brand-600 shadow-sm">
+                        <span class="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">1</span>
+                        Basics &amp; Antiderivatives
+                    </button>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                    <button onclick="selectLevel(2)" id="nav-lvl-2" class="level-pill flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+                        <span class="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-700">2</span>
+                        Substitution &amp; Forms
+                    </button>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                    <button onclick="selectLevel(3)" id="nav-lvl-3" class="level-pill flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+                        <span class="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-700">3</span>
+                        By Parts &amp; Partial Fractions
+                    </button>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                    <button onclick="selectLevel(4)" id="nav-lvl-4" class="level-pill flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+                        <span class="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-700">4</span>
+                        Definite &amp; Area
+                    </button>
+                </nav>
+
+                <!-- Desktop Mastery Stats -->
+                <div class="hidden md:flex items-center gap-3">
+                   <!-- <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 text-amber-800 px-3 py-1.5 rounded-xl text-xs font-bold" title="Current Quiz Streak">
+                        <i data-lucide="flame" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                        <span id="desktop-streak">0</span> Streak
+                    </div>
+                    <div class="flex items-center gap-2 bg-brand-50 border border-brand-200/80 text-brand-800 px-3 py-1.5 rounded-xl text-xs font-bold">
+                        <i data-lucide="award" class="w-4 h-4 text-brand-600"></i>
+                        <span id="desktop-xp">0</span> / 400 XP
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Hero / Active Level Curriculum Banner -->
+        <section id="curriculum-banner" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-brand-50 rounded-full opacity-70 pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="space-y-2 max-w-3xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-bold uppercase tracking-wider" id="level-badge">
+                        Level 1 &bull; Foundation
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" id="level-title">
+                        Basics &amp; Antiderivatives (Indefinite Integrals)
+                    </h2>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed" id="level-desc">
+                        Integration is the reverse process of differentiation. If $\frac{d}{dx}[F(x)] = f(x)$, then $\int f(x)\,dx = F(x) + C$, where $C$ is the arbitrary constant of integration representing a family of parallel curves.
+                    </p>
+                </div>
+                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:min-w-[280px] shrink-0">
+                    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Key Takeaway Formula</div>
+                    <div id="level-highlight-math" class="text-base font-medium text-slate-900 bg-white px-3 py-2 rounded-xl border border-slate-200 text-center">
+                        $$\int x^n \, dx = \frac{x^{n+1}}{n+1} + C \quad (n \neq -1)$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Concept Breakdown Cards for Active Level -->
+            <div id="level-concepts-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- Primary Navigation Tabs for Tools -->
+        <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+            <button onclick="scrollToSection('sandbox-section')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 transition shadow-xs">
+                <i data-lucide="area-chart" class="w-4 h-4 text-brand-600"></i>
+                Visual Area Sandbox
+            </button>
+            <button onclick="scrollToSection('solver-section')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 transition shadow-xs">
+                <i data-lucide="list-checks" class="w-4 h-4 text-emerald-600"></i>
+                Step-by-Step Solver
+            </button>
+            <button onclick="scrollToSection('vault-section')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-brand-300 hover:text-brand-600 transition shadow-xs">
+                <i data-lucide="book-open" class="w-4 h-4 text-violet-600"></i>
+                Formula &amp; Property Vault
+            </button>
+            <button onclick="scrollToSection('quiz-section')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-sm">
+                <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+                Adaptive Practice Quiz
+            </button>
+        </div>
+
+        <!-- SECTION 2: Interactive Visual Area-Under-Curve Sandbox -->
+        <section id="sandbox-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 rounded-lg bg-brand-50 text-brand-600">
+                            <i data-lucide="area-chart" class="w-5 h-5"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-slate-900">Visual Area-Under-Curve Sandbox</h3>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-1">Explore how Riemann Sums $\sum_{i=1}^{n} f(x_i)\Delta x$ converge to the exact definite integral $\int_a^b f(x)\,dx$ as $n \to \infty$.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl self-start">
+                    <button onclick="setRiemannMethod('left')" id="method-left" class="riemann-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-xs transition">Left Sum</button>
+                    <button onclick="setRiemannMethod('midpoint')" id="method-midpoint" class="riemann-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Midpoint</button>
+                    <button onclick="setRiemannMethod('right')" id="method-right" class="riemann-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Right Sum</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12">
+                <!-- Controls Panel -->
+                <div class="lg:col-span-4 p-6 bg-slate-50/70 border-b lg:border-b-0 lg:border-r border-slate-200 space-y-5">
+                    <!-- Function Selector -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">1. Select Function $f(x)$</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="selectSandboxFunc('x2')" id="fn-x2" class="fn-btn p-2.5 rounded-xl border-2 border-brand-600 bg-brand-50/60 text-brand-900 font-semibold text-sm text-center transition">
+                                $f(x) = x^2$
+                            </button>
+                            <button onclick="selectSandboxFunc('sin')" id="fn-sin" class="fn-btn p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:border-slate-300 font-semibold text-sm text-center transition">
+                                $f(x) = \sin(x)$
+                            </button>
+                            <button onclick="selectSandboxFunc('exp')" id="fn-exp" class="fn-btn p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:border-slate-300 font-semibold text-sm text-center transition">
+                                $f(x) = e^x$
+                            </button>
+                            <button onclick="selectSandboxFunc('inv')" id="fn-inv" class="fn-btn p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:border-slate-300 font-semibold text-sm text-center transition">
+                                $f(x) = \frac{1}{x}$
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Limits Sliders -->
+                    <div class="space-y-3 pt-2 border-t border-slate-200/80">
+                        <div class="flex justify-between items-center">
+                            <label for="slider-a" class="text-xs font-bold uppercase tracking-wider text-slate-500">Lower Limit ($a$)</label>
+                            <span id="val-a" class="font-mono text-sm font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md">0.50</span>
+                        </div>
+                        <input type="range" id="slider-a" min="0" max="4" step="0.1" value="0.5" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+
+                        <div class="flex justify-between items-center pt-1">
+                            <label for="slider-b" class="text-xs font-bold uppercase tracking-wider text-slate-500">Upper Limit ($b$)</label>
+                            <span id="val-b" class="font-mono text-sm font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md">3.00</span>
+                        </div>
+                        <input type="range" id="slider-b" min="0.5" max="6.2" step="0.1" value="3.0" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Number of Rectangles Slider -->
+                    <div class="space-y-2 pt-2 border-t border-slate-200/80">
+                        <div class="flex justify-between items-center">
+                            <label for="slider-n" class="text-xs font-bold uppercase tracking-wider text-slate-500">Rectangles ($n$)</label>
+                            <span id="val-n" class="font-mono text-sm font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md">8</span>
+                        </div>
+                        <input type="range" id="slider-n" min="2" max="100" step="1" value="8" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>Coarse ($n=2$)</span>
+                            <span>Smooth ($n=100$)</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Readout Cards -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase">Riemann Approx</div>
+                            <div id="readout-approx" class="font-mono text-lg font-extrabold text-amber-600 mt-0.5">8.1484</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase">Exact Integral</div>
+                            <div id="readout-exact" class="font-mono text-lg font-extrabold text-brand-600 mt-0.5">8.9583</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 text-slate-100 p-3 rounded-xl flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Approximation Error:</span>
+                        <span id="readout-error" class="font-mono font-bold text-emerald-400">9.04%</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Canvas Viewport -->
+                <div class="lg:col-span-8 p-4 sm:p-6 flex flex-col justify-between bg-white relative">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div id="sandbox-equation-display" class="text-sm sm:text-base font-semibold text-slate-800 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200">
+                            $$\int_{0.5}^{3.0} x^2 \, dx = \left[ \frac{x^3}{3} \right]_{0.5}^{3.0} = 8.9583$$
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-slate-500">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-xs bg-brand-500/25 border border-brand-600 inline-block"></span> Riemann Rectangles</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-rose-600 inline-block"></span> Curve $f(x)$</span>
+                        </div>
+                    </div>
+                    <div id="canvas-container" class="w-full h-[320px] sm:h-[380px] rounded-xl border border-slate-200 bg-slate-50/40 relative overflow-hidden">
+                        <canvas id="riemannCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Step-by-Step Interactive Problem Solver & Worked Examples -->
+        <section id="solver-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                            <i data-lucide="list-checks" class="w-5 h-5"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-slate-900">Step-by-Step Interactive Problem Solver</h3>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-1">Master CBSE Board &amp; JEE-level problems by revealing one logical step at a time.</p>
+                </div>
+
+                <!-- Problem Selector Pills -->
+                <div class="flex flex-wrap gap-2" id="problem-selector-tabs">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-6">
+                <!-- Problem Statement Box -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-5 sm:p-6 shadow-md">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span id="prob-tag" class="px-2.5 py-1 rounded-lg bg-white/10 text-brand-200 text-xs font-bold uppercase tracking-wider">Level 2 &bull; Substitution</span>
+                        <span id="prob-source" class="text-xs text-slate-400 font-medium">NCERT Ex 7.2 / Board Favorite</span>
+                    </div>
+                    <div class="text-base sm:text-lg font-medium text-slate-100" id="prob-statement">
+                        Evaluate the integral:
+                    </div>
+                    <div id="prob-math" class="text-xl sm:text-2xl py-2 overflow-x-auto">
+                        $$I = \int \frac{\sin(\tan^{-1} x)}{1 + x^2} \, dx$$
+                    </div>
+                </div>
+
+                <!-- Hint Toggle -->
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <button onclick="toggleHint()" id="hint-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold hover:bg-amber-100 transition">
+                        <i data-lucide="lightbulb" class="w-4 h-4 text-amber-500"></i>
+                        <span id="hint-btn-text">Need a Nudge? Show Hint</span>
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="resetSteps()" class="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition">
+                            Reset Steps
+                        </button>
+                        <button onclick="revealAllSteps()" class="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition">
+                            Show Full Solution
+                        </button>
+                        <button onclick="revealNextStep()" id="next-step-btn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow-sm">
+                            <span>Reveal Step 1</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden Hint Box -->
+                <div id="prob-hint-box" class="hidden bg-amber-50/80 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 fade-in">
+                    <strong class="font-bold">Strategy Hint:</strong> <span id="prob-hint-text"></span>
+                </div>
+
+                <!-- Steps Container -->
+                <div id="steps-container" class="space-y-3">
+                    <!-- Steps rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Comprehensive Formula & Property Vault -->
+        <section id="vault-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-violet-50 text-violet-600">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                            </span>
+                            <h3 class="text-xl font-bold text-slate-900">Formula &amp; Property Vault</h3>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-1">Quick-reference Class 12 cheat sheet with standard forms, ILATE rule, and King's Property.</p>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative w-full md:w-72">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="vault-search" oninput="filterVault()" placeholder="Search formulas (e.g. King, tan, ILATE)..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                    </div>
+                </div>
+
+                <!-- Category Filter Pills -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setVaultCategory('all')" class="vault-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition" data-cat="all">All Formulas</button>
+                    <button onclick="setVaultCategory('standard')" class="vault-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-cat="standard">Basic &amp; Trig</button>
+                    <button onclick="setVaultCategory('special')" class="vault-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-cat="special">9 Special Integrals</button>
+                    <button onclick="setVaultCategory('methods')" class="vault-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-cat="methods">ILATE &amp; Partial Fractions</button>
+                    <button onclick="setVaultCategory('definite')" class="vault-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-cat="definite">Definite &amp; King's Property</button>
+                </div>
+            </div>
+
+            <div id="vault-grid" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/40">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION 5: Adaptive Practice Quiz Engine -->
+        <section id="quiz-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 rounded-lg bg-brand-50 text-brand-600">
+                            <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                        </span>
+                        <h3 class="text-xl font-bold text-slate-900">Adaptive Practice Quiz Engine</h3>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-1">Test your mastery by level. Earn +25 XP for correct answers and build your streak!</p>
+                </div>
+
+                <!-- Difficulty Filter -->
+                <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+                    <button onclick="setQuizLevel(1)" id="q-lvl-1" class="q-lvl-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-brand-600 shadow-2xs transition">Level 1</button>
+                    <button onclick="setQuizLevel(2)" id="q-lvl-2" class="q-lvl-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">Level 2</button>
+                    <button onclick="setQuizLevel(3)" id="q-lvl-3" class="q-lvl-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">Level 3</button>
+                    <button onclick="setQuizLevel(4)" id="q-lvl-4" class="q-lvl-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">Level 4</button>
+                </div>
+            </div>
+
+            <div class="p-6 sm:p-8">
+                <div id="quiz-card" class="max-w-3xl mx-auto space-y-6">
+                    <!-- Question Header -->
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <span id="quiz-progress-label">Question 1 of 3 &bull; Level 1</span>
+                        <span id="quiz-topic-tag" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">Antiderivatives</span>
+                    </div>
+
+                    <!-- Question Prompt -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 sm:p-6">
+                        <div id="quiz-question-text" class="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed">
+                            Loading question...
+                        </div>
+                    </div>
+
+                    <!-- Options Grid -->
+                    <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Options injected via JS -->
+                    </div>
+
+                    <!-- Instant Feedback & Step-by-Step Explanation -->
+                    <div id="quiz-feedback" class="hidden rounded-2xl p-5 border fade-in">
+                        <div class="flex items-start gap-3">
+                            <div id="quiz-feedback-icon" class="mt-0.5"></div>
+                            <div class="space-y-2 flex-1">
+                                <h4 id="quiz-feedback-title" class="font-bold text-base"></h4>
+                                <div id="quiz-feedback-explanation" class="text-sm leading-relaxed"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="nextQuizQuestion()" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition">
+                                <span>Next Question</span>
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-500 bg-white mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <!--<div class="flex items-center gap-2 font-semibold text-slate-700">
+                <span class="w-6 h-6 rounded-md bg-brand-600 text-white flex items-center justify-center font-bold">&int;</span>
+                CalcMaster 12 &mdash; Class 12 Mathematics Interactive Companion
+            </div>-->
+            <p>© All rights reserved dxshonly 2026</p>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // ==========================================
+        // 1. CURRICULUM DATA (LEVELS 1 TO 4)
+        // ==========================================
+        const curriculumData = {
+            1: {
+                badge: "Level 1 • Foundation",
+                title: "Basics & Antiderivatives (Indefinite Integrals)",
+                desc: "Integration is the inverse process of differentiation. If $\\frac{d}{dx}[F(x)] = f(x)$, then $\\int f(x)\\,dx = F(x) + C$, where $C$ is the constant of integration representing an infinite family of parallel curves.",
+                highlight: "$$\\int x^n \\, dx = \\frac{x^{n+1}}{n+1} + C \\quad (n \\neq -1)$$",
+                concepts: [
+                    {
+                        title: "Why '+ C' Matters",
+                        body: "Since $\\frac{d}{dx}(x^2 + 5) = 2x$ and $\\frac{d}{dx}(x^2 - 9) = 2x$, integrating $2x$ recovers $x^2 + C$, a family of vertically shifted parabolas."
+                    },
+                    {
+                        title: "Linearity Property",
+                        body: "Integration distributes over addition and pulls out constants: $\\int [k_1 f(x) + k_2 g(x)]\\,dx = k_1\\int f(x)\\,dx + k_2\\int g(x)\\,dx$."
+                    },
+                    {
+                        title: "Algebraic Simplification First",
+                        body: "There is no direct quotient or product rule in basic integration. Always divide polynomials or expand brackets before integrating term-by-term."
+                    }
+                ]
+            },
+            2: {
+                badge: "Level 2 • Core Techniques",
+                title: "Integration by Substitution & Standard Forms",
+                desc: "When an integrand contains a composite function $f(g(x))$ alongside its inner derivative $g'(x)$, substitute $t = g(x)$ so that $dt = g'(x)\\,dx$, transforming a complex integral into a standard form.",
+                highlight: "$$\\int f(g(x)) g'(x) \\, dx = \\int f(t) \\, dt$$",
+                concepts: [
+                    {
+                        title: "Spot the Derivative Pair",
+                        body: "Look for pairs like $(\\tan^{-1}x, \\frac{1}{1+x^2})$, $(\\ln x, \\frac{1}{x})$, or $(\\sin x, \\cos x)$. Put $t$ equal to the function whose derivative is present."
+                    },
+                    {
+                        title: "Golden Corollary: $\\int \\frac{f'(x)}{f(x)} dx$",
+                        body: "Whenever the numerator is the exact derivative of the denominator, the integral is immediately $\\ln|f(x)| + C$. Example: $\\int \\tan x\\,dx = \\ln|\\sec x| + C$."
+                    },
+                    {
+                        title: "Completing the Square",
+                        body: "For quadratics $\\int \\frac{dx}{ax^2+bx+c}$, rewrite $ax^2+bx+c$ as $a[(x + \\frac{b}{2a})^2 \\pm k^2]$ to apply the 9 standard inverse-trig/log formulas."
+                    }
+                ]
+            },
+            3: {
+                badge: "Level 3 • Intermediate Mastery",
+                title: "Integration by Parts & Partial Fractions",
+                desc: "Tackle products of two different function families using the ILATE priority rule, or decompose proper rational functions $\\frac{P(x)}{Q(x)}$ into simpler partial fractions.",
+                highlight: "$$\\int u \\cdot v \\, dx = u \\int v \\, dx - \\int \\left( \\frac{du}{dx} \\int v \\, dx \\right) dx$$",
+                concepts: [
+                    {
+                        title: "The ILATE Priority Rule",
+                        body: "Choose the first function $u$ in order: <strong>I</strong>nverse Trig, <strong>L</strong>ogarithmic, <strong>A</strong>lgebraic, <strong>T</strong>rigonometric, <strong>E</strong>xponential."
+                    },
+                    {
+                        title: "Cancellation Form: $\\int e^x[f(x)+f'(x)]dx$",
+                        body: "A favorite CBSE 3-marker: $\\int e^x [f(x) + f'(x)]\\,dx = e^x f(x) + C$. Prove it by applying Parts only to $\\int e^x f(x)\\,dx$."
+                    },
+                    {
+                        title: "Proper Rational Functions",
+                        body: "Before applying Partial Fractions to $\\frac{P(x)}{Q(x)}$, verify $\\deg(P) < \\deg(Q)$. If $\\deg(P) \\ge \\deg(Q)$, perform polynomial long division first!"
+                    }
+                ]
+            },
+            4: {
+                badge: "Level 4 • Board & Exam Peak",
+                title: "Definite Integrals, King's Property & Area Under Curves",
+                desc: "Definite integration evaluates net signed area over $[a,b]$ via the Fundamental Theorem of Calculus: $\\int_a^b f(x)\\,dx = F(b) - F(a)$. Symmetry properties unlock otherwise impossible integrals.",
+                highlight: "$$\\int_0^a f(x) \\, dx = \\int_0^a f(a - x) \\, dx \\quad \\text{(King's Property)}$$",
+                concepts: [
+                    {
+                        title: "King's Property ($P_4$)",
+                        body: "Replacing $x$ with $(a+b-x)$ or $(a-x)$ often creates a symmetric twin $I$ such that $2I = \\int_a^b 1\\,dx = b - a$, yielding $I = \\frac{b-a}{2}$."
+                    },
+                    {
+                        title: "Even & Odd Symmetry on $[-a, a]$",
+                        body: "If $f(-x) = -f(x)$ (odd), $\\int_{-a}^a f(x)\\,dx = 0$. If $f(-x) = f(x)$ (even), $\\int_{-a}^a f(x)\\,dx = 2\\int_0^a f(x)\\,dx$."
+                    },
+                    {
+                        title: "Area Under Curves (Ch. 8)",
+                        body: "Geometric area is always positive: $\\text{Area} = \\int_a^b |f(x)|\\,dx$. Always split the interval at points where $f(x)$ crosses the x-axis."
+                    }
+                ]
+            }
+        };
+
+        // ==========================================
+        // 2. FORMULA & PROPERTY VAULT DATA
+        // ==========================================
+        const vaultFormulas = [
+            {
+                category: "standard",
+                title: "Power & Exponential Rules",
+                badge: "Level 1",
+                latex: "$$\\int x^n dx = \\frac{x^{n+1}}{n+1} + C, \\quad \\int e^x dx = e^x + C, \\quad \\int a^x dx = \\frac{a^x}{\\ln a} + C$$",
+                note: "Valid for all real $n \\neq -1$. For $n = -1$, $\\int \\frac{1}{x} dx = \\ln|x| + C$."
+            },
+            {
+                category: "standard",
+                title: "Fundamental Trigonometric Integrals",
+                badge: "Level 1",
+                latex: "$$\\int \\sin x\\,dx = -\\cos x + C, \\quad \\int \\cos x\\,dx = \\sin x + C, \\quad \\int \\sec^2 x\\,dx = \\tan x + C$$",
+                note: "Remember: integrals of co-functions ($\cos, \cot, \csc$) carry a negative sign."
+            },
+            {
+                category: "standard",
+                title: "Trig Integrals via Substitution",
+                badge: "Level 2",
+                latex: "$$\\int \\tan x\\,dx = \\ln|\\sec x| + C, \\quad \\int \\cot x\\,dx = \\ln|\\sin x| + C$$",
+                note: "Also: $\\int \\sec x\\,dx = \\ln|\\sec x + \\tan x| + C$."
+            },
+            {
+                category: "special",
+                title: "Special Rational Forms (Sum/Diff of Squares)",
+                badge: "Level 2 • Must Know",
+                latex: "$$\\int \\frac{dx}{x^2 + a^2} = \\frac{1}{a}\\tan^{-1}\\left(\\frac{x}{a}\\right) + C, \\quad \\int \\frac{dx}{x^2 - a^2} = \\frac{1}{2a}\\ln\\left|\\frac{x-a}{x+a}\\right| + C$$",
+                note: "And $\\int \\frac{dx}{a^2 - x^2} = \\frac{1}{2a}\\ln\\left|\\frac{a+x}{a-x}\\right| + C$."
+            },
+            {
+                category: "special",
+                title: "Special Irrational Denominators",
+                badge: "Level 2 • Must Know",
+                latex: "$$\\int \\frac{dx}{\\sqrt{a^2 - x^2}} = \\sin^{-1}\\left(\\frac{x}{a}\\right) + C, \\quad \\int \\frac{dx}{\\sqrt{x^2 \\pm a^2}} = \\ln\\left|x + \\sqrt{x^2 \\pm a^2}\\right| + C$$",
+                note: "Used after completing the square inside a square root."
+            },
+            {
+                category: "special",
+                title: "Special Irrational Numerators (Area Forms)",
+                badge: "Level 4 • Ch. 8 Essential",
+                latex: "$$\\int \\sqrt{a^2 - x^2}\\,dx = \\frac{x}{2}\\sqrt{a^2 - x^2} + \\frac{a^2}{2}\\sin^{-1}\\left(\\frac{x}{a}\\right) + C$$",
+                note: "Crucial for finding areas of circles and ellipses in Chapter 8."
+            },
+            {
+                category: "methods",
+                title: "Integration by Parts (ILATE)",
+                badge: "Level 3",
+                latex: "$$\\int u\\,v\\,dx = u\\int v\\,dx - \\int \\left(u' \\int v\\,dx\\right)dx$$",
+                note: "Pick $u$ using I-L-A-T-E (Inverse, Log, Algebraic, Trig, Exponential)."
+            },
+            {
+                category: "methods",
+                title: "Exponential Cancellation Identity",
+                badge: "Level 3 • Board Favorite",
+                latex: "$$\\int e^x [f(x) + f'(x)]\\,dx = e^x f(x) + C$$",
+                note: "Example: $\\int e^x(\\tan^{-1}x + \\frac{1}{1+x^2})dx = e^x\\tan^{-1}x + C$."
+            },
+            {
+                category: "methods",
+                title: "Partial Fractions Templates",
+                badge: "Level 3",
+                latex: "$$\\frac{px+q}{(x-a)(x-b)} = \\frac{A}{x-a} + \\frac{B}{x-b}, \\quad \\frac{px^2+qx+r}{(x-a)(x^2+b)} = \\frac{A}{x-a} + \\frac{Bx+C}{x^2+b}$$",
+                note: "For repeated linear factors $(x-a)^2$, use $\\frac{A}{x-a} + \\frac{B}{(x-a)^2}$."
+            },
+            {
+                category: "definite",
+                title: "King's Property ($P_4$)",
+                badge: "Level 4 • High Yield",
+                latex: "$$\\int_a^b f(x)\\,dx = \\int_a^b f(a + b - x)\\,dx$$",
+                note: "Special case on $[0, a]$: $\\int_0^a f(x)\\,dx = \\int_0^a f(a - x)\\,dx$."
+            },
+            {
+                category: "definite",
+                title: "Even & Odd Function Symmetry ($P_7$)",
+                badge: "Level 4",
+                latex: "$$\\int_{-a}^a f(x)\\,dx = \\begin{cases} 2\\int_0^a f(x)\\,dx & \\text{if } f(-x) = f(x) \\text{ (Even)} \\\\ 0 & \\text{if } f(-x) = -f(x) \\text{ (Odd)} \\end{cases}$$",
+                note: "Always check $f(-x)$ first whenever limits are symmetric $[-a, a]$."
+            },
+            {
+                category: "definite",
+                title: "Queen's Property ($P_6$)",
+                badge: "Level 4 • JEE / HOTS",
+                latex: "$$\\int_0^{2a} f(x)\\,dx = \\begin{cases} 2\\int_0^a f(x)\\,dx & \\text{if } f(2a - x) = f(x) \\\\ 0 & \\text{if } f(2a - x) = -f(x) \\end{cases}$$",
+                note: "Used to halve upper limits like $\\pi$ or $2\\pi$ in trigonometric integrals."
+            }
+        ];
+
+        // ==========================================
+        // 3. STEP-BY-STEP WORKED EXAMPLES DATA
+        // ==========================================
+        const workedProblems = [
+            {
+                id: 0,
+                shortTitle: "Prob 1: Substitution",
+                tag: "Level 2 • Substitution",
+                source: "NCERT Ex 7.2 Q37",
+                statement: "Evaluate the indefinite integral:",
+                math: "$$I = \\int \\frac{x^3 \\sin(\\tan^{-1}(x^4))}{1 + x^8} \\, dx$$",
+                hint: "Notice that the derivative of $\\tan^{-1}(x^4)$ is $\\frac{4x^3}{1 + (x^4)^2} = \\frac{4x^3}{1 + x^8}$. Let $t = \\tan^{-1}(x^4)$.",
+                steps: [
+                    {
+                        title: "Identify the Substitution",
+                        detail: "Let $t = \\tan^{-1}(x^4)$."
+                    },
+                    {
+                        title: "Differentiate Both Sides w.r.t. $x$",
+                        detail: "$$\\frac{dt}{dx} = \\frac{1}{1 + (x^4)^2} \\cdot \\frac{d}{dx}(x^4) = \\frac{4x^3}{1 + x^8} \\implies \\frac{x^3}{1 + x^8}\\,dx = \\frac{dt}{4}$$"
+                    },
+                    {
+                        title: "Rewrite the Integral in Terms of $t$",
+                        detail: "$$I = \\int \\sin(t) \\cdot \\frac{dt}{4} = \\frac{1}{4} \\int \\sin(t)\\,dt$$"
+                    },
+                    {
+                        title: "Integrate & Back-Substitute",
+                        detail: "$$I = \\frac{1}{4}(-\\cos t) + C = -\\frac{1}{4}\\cos\\left(\\tan^{-1}(x^4)\\right) + C$$"
+                    }
+                ]
+            },
+            {
+                id: 1,
+                shortTitle: "Prob 2: By Parts (ILATE)",
+                tag: "Level 3 • Integration by Parts",
+                source: "CBSE Board Standard",
+                statement: "Evaluate the integral:",
+                math: "$$I = \\int x \\tan^{-1} x \\, dx$$",
+                hint: "According to ILATE, Inverse Trig ($\\tan^{-1} x$) comes before Algebraic ($x$). Choose $u = \\tan^{-1} x$ and $v = x$.",
+                steps: [
+                    {
+                        title: "Assign $u$ and $v$ using ILATE",
+                        detail: "Take $u = \\tan^{-1} x$ (first function) and $v = x$ (second function)."
+                    },
+                    {
+                        title: "Apply the Integration by Parts Formula",
+                        detail: "$$I = (\\tan^{-1} x) \\int x\\,dx - \\int \\left[ \\frac{d}{dx}(\\tan^{-1} x) \\int x\\,dx \\right] dx = \\frac{x^2}{2}\\tan^{-1} x - \\frac{1}{2} \\int \\frac{x^2}{1 + x^2}\\,dx$$"
+                    },
+                    {
+                        title: "Simplify the Improper Rational Integral",
+                        detail: "Add and subtract $1$ in the numerator: $$\\int \\frac{x^2 + 1 - 1}{1 + x^2}\\,dx = \\int \\left(1 - \\frac{1}{1 + x^2}\\right) dx = x - \\tan^{-1} x$$"
+                    },
+                    {
+                        title: "Combine All Terms",
+                        detail: "$$I = \\frac{x^2}{2}\\tan^{-1} x - \\frac{1}{2}(x - \\tan^{-1} x) + C = \\frac{x^2 + 1}{2}\\tan^{-1} x - \\frac{x}{2} + C$$"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                shortTitle: "Prob 3: King's Property",
+                tag: "Level 4 • Definite Integral",
+                source: "NCERT Ex 7.10 / CBSE 4-Marker",
+                statement: "Evaluate the definite integral:",
+                math: "$$I = \\int_0^{\\pi/2} \\frac{\\sqrt{\\sin x}}{\\sqrt{\\sin x} + \\sqrt{\\cos x}} \\, dx$$",
+                hint: "Apply King's Property $\\int_0^a f(x)\\,dx = \\int_0^a f(a - x)\\,dx$ with $a = \\frac{\\pi}{2}$, then add the original integral $I$ and the transformed integral $I$.",
+                steps: [
+                    {
+                        title: "Label the Original Integral as Equation (1)",
+                        detail: "$$I = \\int_0^{\\pi/2} \\frac{\\sqrt{\\sin x}}{\\sqrt{\\sin x} + \\sqrt{\\cos x}} \\, dx \\quad \\text{--- (1)}$$"
+                    },
+                    {
+                        title: "Apply King's Property: Replace $x$ with $\\left(\\frac{\\pi}{2} - x\\right)$",
+                        detail: "Since $\\sin(\\frac{\\pi}{2} - x) = \\cos x$ and $\\cos(\\frac{\\pi}{2} - x) = \\sin x$: $$I = \\int_0^{\\pi/2} \\frac{\\sqrt{\\cos x}}{\\sqrt{\\cos x} + \\sqrt{\\sin x}} \\, dx \\quad \\text{--- (2)}$$"
+                    },
+                    {
+                        title: "Add Equations (1) and (2)",
+                        detail: "$$2I = \\int_0^{\\pi/2} \\frac{\\sqrt{\\sin x} + \\sqrt{\\cos x}}{\\sqrt{\\sin x} + \\sqrt{\\cos x}} \\, dx = \\int_0^{\\pi/2} 1 \\, dx$$"
+                    },
+                    {
+                        title: "Evaluate Limits & Divide by 2",
+                        detail: "$$2I = [x]_0^{\\pi/2} = \\frac{\\pi}{2} - 0 = \\frac{\\pi}{2} \\implies I = \\frac{\\pi}{4}$$"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                shortTitle: "Prob 4: Partial Fractions",
+                tag: "Level 3 • Partial Fractions",
+                source: "NCERT Ex 7.5",
+                statement: "Evaluate:",
+                math: "$$I = \\int \\frac{x}{(x - 1)(x - 2)} \\, dx$$",
+                hint: "Decompose $\\frac{x}{(x-1)(x-2)} = \\frac{A}{x-1} + \\frac{B}{x-2}$ and find $A$ and $B$ using the cover-up method.",
+                steps: [
+                    {
+                        title: "Set Up Partial Fraction Decomposition",
+                        detail: "$$\\frac{x}{(x - 1)(x - 2)} = \\frac{A}{x - 1} + \\frac{B}{x - 2} \\implies x = A(x - 2) + B(x - 1)$$"
+                    },
+                    {
+                        title: "Solve for Constants $A$ and $B$",
+                        detail: "Put $x = 1 \\implies 1 = A(-1) \\implies A = -1$.<br>Put $x = 2 \\implies 2 = B(1) \\implies B = 2$."
+                    },
+                    {
+                        title: "Integrate Each Term",
+                        detail: "$$I = \\int \\left( \\frac{-1}{x - 1} + \\frac{2}{x - 2} \\right) dx = -\\ln|x - 1| + 2\\ln|x - 2| + C$$"
+                    },
+                    {
+                        title: "Combine Logarithms",
+                        detail: "$$I = \\ln\\left| \\frac{(x - 2)^2}{x - 1} \\right| + C$$"
+                    }
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 4. ADAPTIVE QUIZ QUESTIONS BANK
+        // ==========================================
+        const quizBank = {
+            1: [
+                {
+                    topic: "Basic Antiderivatives",
+                    q: "Evaluate $\\int \\left(3x^2 + \\frac{1}{x} - e^x\\right) dx$:",
+                    options: [
+                        "$x^3 + \\ln|x| - e^x + C$",
+                        "$6x - \\frac{1}{x^2} - e^x + C$",
+                        "$x^3 + \\ln|x| + e^x + C$",
+                        "$3x^3 + \\ln|x| - e^x + C$"
+                    ],
+                    correct: 0,
+                    explanation: "Integrating term-by-term: $\\int 3x^2\\,dx = 3\\frac{x^3}{3} = x^3$, $\\int \\frac{1}{x}\\,dx = \\ln|x|$, and $\\int e^x\\,dx = e^x$. Thus, $x^3 + \\ln|x| - e^x + C$."
+                },
+                {
+                    topic: "Trig Identities",
+                    q: "What is $\\int \\tan^2 x \\, dx$?",
+                    options: [
+                        "$\\frac{\\tan^3 x}{3} + C$",
+                        "$\\tan x - x + C$",
+                        "$\\sec^2 x + C$",
+                        "$\\tan x + x + C$"
+                    ],
+                    correct: 1,
+                    explanation: "Use the Pythagorean identity $\\tan^2 x = \\sec^2 x - 1$. Integrating gives $\\int (\\sec^2 x - 1)\\,dx = \\tan x - x + C$."
+                },
+                {
+                    topic: "Linear Arguments",
+                    q: "Evaluate $\\int \\cos(4x + 5) \\, dx$:",
+                    options: [
+                        "$4\\sin(4x + 5) + C$",
+                        "$-\\frac{1}{4}\\sin(4x + 5) + C$",
+                        "$\\frac{1}{4}\\sin(4x + 5) + C$",
+                        "$\\sin(4x + 5) + C$"
+                    ],
+                    correct: 2,
+                    explanation: "For a linear argument $ax + b$, divide by the coefficient of $x$: $\\int \\cos(4x+5)\\,dx = \\frac{\\sin(4x+5)}{4} + C$."
+                }
+            ],
+            2: [
+                {
+                    topic: "Substitution",
+                    q: "Evaluate $\\int \\frac{2x}{1 + x^2} \\, dx$:",
+                    options: [
+                        "$2\\tan^{-1} x + C$",
+                        "$\\ln(1 + x^2) + C$",
+                        "$\\frac{1}{(1 + x^2)^2} + C$",
+                        "$x^2 \\ln(1 + x^2) + C$"
+                    ],
+                    correct: 1,
+                    explanation: "Here the numerator $2x$ is the exact derivative of the denominator $1 + x^2$. By $\\int \\frac{f'(x)}{f(x)}\\,dx = \\ln|f(x)| + C$, the answer is $\\ln(1 + x^2) + C$."
+                },
+                {
+                    topic: "Special Forms",
+                    q: "Evaluate $\\int \\frac{dx}{x^2 + 9}$:",
+                    options: [
+                        "$\\tan^{-1}\\left(\\frac{x}{3}\\right) + C$",
+                        "$\\frac{1}{9}\\tan^{-1}\\left(\\frac{x}{3}\\right) + C$",
+                        "$\\frac{1}{3}\\tan^{-1}\\left(\\frac{x}{3}\\right) + C$",
+                        "$\\frac{1}{6}\\ln\\left|\\frac{x-3}{x+3}\\right| + C$"
+                    ],
+                    correct: 2,
+                    explanation: "Using $\\int \\frac{dx}{x^2 + a^2} = \\frac{1}{a}\\tan^{-1}(\\frac{x}{a}) + C$ with $a = 3$, we get $\\frac{1}{3}\\tan^{-1}(\\frac{x}{3}) + C$."
+                },
+                {
+                    topic: "Log Substitution",
+                    q: "Evaluate $\\int \\frac{(\\ln x)^2}{x} \\, dx$:",
+                    options: [
+                        "$\\frac{(\\ln x)^3}{3} + C$",
+                        "$\\frac{2\\ln x}{x^2} + C$",
+                        "$(\\ln x)^3 + C$",
+                        "$\\frac{1}{3x^3} + C$"
+                    ],
+                    correct: 0,
+                    explanation: "Put $t = \\ln x \\implies dt = \\frac{1}{x}\\,dx$. The integral becomes $\\int t^2\\,dt = \\frac{t^3}{3} + C = \\frac{(\\ln x)^3}{3} + C$."
+                }
+            ],
+            3: [
+                {
+                    topic: "Exponential Cancellation",
+                    q: "Evaluate $\\int e^x (\\sin x + \\cos x) \\, dx$:",
+                    options: [
+                        "$e^x \\cos x + C$",
+                        "$e^x \\sin x + C$",
+                        "$-e^x \\cos x + C$",
+                        "$e^x (\\sin x - \\cos x) + C$"
+                    ],
+                    correct: 1,
+                    explanation: "Using $\\int e^x[f(x) + f'(x)]\\,dx = e^x f(x) + C$ with $f(x) = \\sin x$ and $f'(x) = \\cos x$, the integral equals $e^x \\sin x + C$."
+                },
+                {
+                    topic: "ILATE Rule",
+                    q: "In $\\int x^2 \\ln x \\, dx$, which function should be chosen as the first function ($u$) according to ILATE?",
+                    options: [
+                        "$x^2$ (Algebraic)",
+                        "$\\ln x$ (Logarithmic)",
+                        "Either gives the same first step",
+                        "Neither; use partial fractions"
+                    ],
+                    correct: 1,
+                    explanation: "In I-L-A-T-E, Logarithmic (L) comes before Algebraic (A). Choosing $u = \\ln x$ avoids having to integrate $\\ln x$ directly."
+                },
+                {
+                    topic: "Partial Fractions",
+                    q: "To integrate $\\frac{x^2 + 1}{x^2 - 1}$, what must be your very first step?",
+                    options: [
+                        "Write $\\frac{A}{x-1} + \\frac{B}{x+1}$ immediately",
+                        "Substitute $x = \\tan\\theta$",
+                        "Perform long division since $\\deg(\\text{Num}) = \\deg(\\text{Den})$",
+                        "Apply Integration by Parts"
+                    ],
+                    correct: 2,
+                    explanation: "Partial fractions only apply to proper rational functions where $\\deg(P) < \\deg(Q)$. Rewrite $\\frac{x^2+1}{x^2-1} = 1 + \\frac{2}{x^2-1}$ first!"
+                }
+            ],
+            4: [
+                {
+                    topic: "Odd Function Symmetry",
+                    q: "Evaluate $\\int_{-\\pi/2}^{\\pi/2} \\sin^7 x \\, dx$:",
+                    options: [
+                        "$1$",
+                        "$\\frac{2}{7}$",
+                        "$0$",
+                        "$\\pi$"
+                    ],
+                    correct: 2,
+                    explanation: "Let $f(x) = \\sin^7 x$. Then $f(-x) = (-\\sin x)^7 = -\\sin^7 x = -f(x)$, so $f(x)$ is an odd function. Over symmetric limits $[-a, a]$, the definite integral is $0$."
+                },
+                {
+                    topic: "King's Property",
+                    q: "Using King's Property, what is $\\int_0^{\\pi/2} \\frac{\\cos^5 x}{\\sin^5 x + \\cos^5 x} \\, dx$?",
+                    options: [
+                        "$\\frac{\\pi}{2}$",
+                        "$\\frac{\\pi}{4}$",
+                        "$0$",
+                        "$1$"
+                    ],
+                    correct: 1,
+                    explanation: "Replacing $x$ with $\\frac{\\pi}{2} - x$ swaps $\\sin^5 x$ and $\\cos^5 x$. Adding gives $2I = \\int_0^{\\pi/2} 1\\,dx = \\frac{\\pi}{2} \\implies I = \\frac{\\pi}{4}$."
+                },
+                {
+                    topic: "Area Under Curve",
+                    q: "Find the area bounded by $y = x^2$, the x-axis, and the vertical lines $x = 1$ and $x = 3$:",
+                    options: [
+                        "$\\frac{26}{3}$ sq. units",
+                        "$\\frac{28}{3}$ sq. units",
+                        "$8$ sq. units",
+                        "$9$ sq. units"
+                    ],
+                    correct: 0,
+                    explanation: "$\\text{Area} = \\int_1^3 x^2\\,dx = \\left[\\frac{x^3}{3}\\right]_1^3 = \\frac{27}{3} - \\frac{1}{3} = \\frac{26}{3}$ sq. units."
+                }
+            ]
+        };
+
+        // ==========================================
+        // 5. STATE MANAGEMENT
+        // ==========================================
+        let state = {
+            currentLevel: 1,
+            xp: 0,
+            streak: 0,
+            // Sandbox state
+            sandboxFn: 'x2',
+            riemannMethod: 'left',
+            limitA: 0.5,
+            limitB: 3.0,
+            numRects: 8,
+            // Solver state
+            activeProblemId: 0,
+            revealedStepCount: 0,
+            hintVisible: false,
+            // Vault state
+            vaultCategory: 'all',
+            // Quiz state
+            quizLevel: 1,
+            quizIndex: 0,
+            quizAnswered: false
+        };
+
+        // ==========================================
+        // 6. MATH RENDERING HELPER (KATEX)
+        // ==========================================
+        function renderMath(element = document.body) {
+            if (window.renderMathInElement) {
+                renderMathInElement(element, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // ==========================================
+        // 7. CURRICULUM LEVEL NAVIGATION
+        // ==========================================
+        function selectLevel(lvl) {
+            state.currentLevel = lvl;
+            const data = curriculumData[lvl];
+
+            // Update pill styles
+            document.querySelectorAll('.level-pill').forEach((btn, idx) => {
+                const pillLvl = idx + 1;
+                const badgeSpan = btn.querySelector('span');
+                if (pillLvl === lvl) {
+                    btn.className = "level-pill flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border bg-brand-600 text-white border-brand-600 shadow-sm";
+                    badgeSpan.className = "w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]";
+                } else {
+                    btn.className = "level-pill flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
+                    badgeSpan.className = "w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-700";
+                }
+            });
+
+            // Update Banner Content
+            document.getElementById('level-badge').textContent = data.badge;
+            document.getElementById('level-title').textContent = data.title;
+            document.getElementById('level-desc').innerHTML = data.desc;
+            document.getElementById('level-highlight-math').innerHTML = data.highlight;
+
+            // Update Concept Cards
+            const conceptsGrid = document.getElementById('level-concepts-grid');
+            conceptsGrid.innerHTML = data.concepts.map((c, i) => `
+                <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 hover:border-brand-200 transition">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="w-5 h-5 rounded-md bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center">${i + 1}</span>
+                        <h4 class="font-bold text-sm text-slate-900">${c.title}</h4>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">${c.body}</p>
+                </div>
+            `).join('');
+
+            // Sync Quiz level to match selected curriculum level
+            setQuizLevel(lvl);
+            renderMath(document.getElementById('curriculum-banner'));
+        }
+
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ==========================================
+        // 8. VISUAL AREA-UNDER-CURVE SANDBOX
+        // ==========================================
+        const sandboxFunctions = {
+            x2: {
+                label: 'x^2',
+                f: (x) => x * x,
+                F: (x) => (x * x * x) / 3,
+                antiStr: '\\frac{x^3}{3}',
+                minA: 0, maxB: 4, yMax: 16.5
+            },
+            sin: {
+                label: '\\sin(x)',
+                f: (x) => Math.sin(x),
+                F: (x) => -Math.cos(x),
+                antiStr: '-\\cos(x)',
+                minA: 0, maxB: 3.14, yMax: 1.3
+            },
+            exp: {
+                label: 'e^x',
+                f: (x) => Math.exp(x),
+                F: (x) => Math.exp(x),
+                antiStr: 'e^x',
+                minA: 0, maxB: 2.5, yMax: 13
+            },
+            inv: {
+                label: '\\frac{1}{x}',
+                f: (x) => 1 / x,
+                F: (x) => Math.log(x),
+                antiStr: '\\ln|x|',
+                minA: 0.4, maxB: 5.0, yMax: 2.8
+            }
+        };
+
+        function selectSandboxFunc(fnKey) {
+            state.sandboxFn = fnKey;
+            const meta = sandboxFunctions[fnKey];
+
+            // Update button highlights
+            document.querySelectorAll('.fn-btn').forEach(btn => {
+                btn.className = "fn-btn p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:border-slate-300 font-semibold text-sm text-center transition";
+            });
+            document.getElementById(`fn-${fnKey}`).className = "fn-btn p-2.5 rounded-xl border-2 border-brand-600 bg-brand-50/60 text-brand-900 font-semibold text-sm text-center transition";
+
+            // Adjust sliders safely for domain
+            const sliderA = document.getElementById('slider-a');
+            const sliderB = document.getElementById('slider-b');
+
+            sliderA.min = meta.minA;
+            sliderA.max = (meta.maxB - 0.5).toFixed(1);
+            sliderB.min = (meta.minA + 0.4).toFixed(1);
+            sliderB.max = meta.maxB;
+
+            if (fnKey === 'sin') {
+                state.limitA = 0.0;
+                state.limitB = 3.1;
+            } else if (fnKey === 'exp') {
+                state.limitA = 0.0;
+                state.limitB = 2.0;
+            } else if (fnKey === 'inv') {
+                state.limitA = 1.0;
+                state.limitB = 4.0;
+            } else {
+                state.limitA = 0.5;
+                state.limitB = 3.0;
+            }
+
+            sliderA.value = state.limitA;
+            sliderB.value = state.limitB;
+            updateSandbox();
+        }
+
+        function setRiemannMethod(method) {
+            state.riemannMethod = method;
+            document.querySelectorAll('.riemann-btn').forEach(btn => {
+                btn.className = "riemann-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
+            });
+            document.getElementById(`method-${method}`).className = "riemann-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-xs transition";
+            updateSandbox();
+        }
+
+        function updateSandbox() {
+            const sliderA = document.getElementById('slider-a');
+            const sliderB = document.getElementById('slider-b');
+            const sliderN = document.getElementById('slider-n');
+
+            let a = parseFloat(sliderA.value);
+            let b = parseFloat(sliderB.value);
+            const n = parseInt(sliderN.value, 10);
+
+            // Enforce a < b
+            if (a >= b - 0.1) {
+                a = Math.max(parseFloat(sliderA.min), b - 0.2);
+                sliderA.value = a.toFixed(1);
+            }
+
+            state.limitA = a;
+            state.limitB = b;
+            state.numRects = n;
+
+            document.getElementById('val-a').textContent = a.toFixed(2);
+            document.getElementById('val-b').textContent = b.toFixed(2);
+            document.getElementById('val-n').textContent = n;
+
+            const meta = sandboxFunctions[state.sandboxFn];
+            const dx = (b - a) / n;
+            let approxArea = 0;
+
+            for (let i = 0; i < n; i++) {
+                let sampleX;
+                if (state.riemannMethod === 'left') sampleX = a + i * dx;
+                else if (state.riemannMethod === 'right') sampleX = a + (i + 1) * dx;
+                else sampleX = a + (i + 0.5) * dx;
+
+                approxArea += meta.f(sampleX) * dx;
+            }
+
+            const exactArea = meta.F(b) - meta.F(a);
+            const relError = exactArea !== 0 ? (Math.abs(exactArea - approxArea) / Math.abs(exactArea)) * 100 : 0;
+
+            document.getElementById('readout-approx').textContent = approxArea.toFixed(4);
+            document.getElementById('readout-exact').textContent = exactArea.toFixed(4);
+            document.getElementById('readout-error').textContent = relError.toFixed(2) + '%';
+
+            const eqDisplay = document.getElementById('sandbox-equation-display');
+            eqDisplay.innerHTML = `$$\\int_{${a.toFixed(1)}}^{${b.toFixed(1)}} ${meta.label} \\, dx = \\left[ ${meta.antiStr} \\right]_{${a.toFixed(1)}}^{${b.toFixed(1)}} = ${exactArea.toFixed(4)}$$`;
+            renderMath(eqDisplay);
+
+            drawRiemannCanvas();
+        }
+
+        function drawRiemannCanvas() {
+            const container = document.getElementById('canvas-container');
+            const canvas = document.getElementById('riemannCanvas');
+            if (!container || !canvas) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const W = rect.width;
+            const H = rect.height;
+            ctx.clearRect(0, 0, W, H);
+
+            const meta = sandboxFunctions[state.sandboxFn];
+            const a = state.limitA;
+            const b = state.limitB;
+            const n = state.numRects;
+
+            // Coordinate mapping margins
+            const padLeft = 46;
+            const padRight = 24;
+            const padTop = 24;
+            const padBottom = 36;
+            const plotW = W - padLeft - padRight;
+            const plotH = H - padTop - padBottom;
+
+            const xMin = 0;
+            const xMax = Math.max(meta.maxB + 0.3, b + 0.3);
+            const yMin = 0;
+            // Dynamic yMax based on current curve peak so graph fills nicely
+            let currentPeak = 0;
+            for (let x = Math.max(0.2, xMin); x <= xMax; x += 0.05) {
+                currentPeak = Math.max(currentPeak, meta.f(x));
+            }
+            const yMax = Math.min(meta.yMax, Math.max(currentPeak * 1.15, 1.2));
+
+            const toPxX = (x) => padLeft + ((x - xMin) / (xMax - xMin)) * plotW;
+            const toPxY = (y) => padTop + plotH - ((y - yMin) / (yMax - yMin)) * plotH;
+
+            // Draw subtle grid lines
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            const xTicks = 6;
+            for (let i = 0; i <= xTicks; i++) {
+                const gx = xMin + (i / xTicks) * (xMax - xMin);
+                const px = toPxX(gx);
+                ctx.beginPath();
+                ctx.moveTo(px, padTop);
+                ctx.lineTo(px, padTop + plotH);
+                ctx.stroke();
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(gx.toFixed(1), px, padTop + plotH + 18);
+            }
+
+            const yTicks = 5;
+            for (let i = 0; i <= yTicks; i++) {
+                const gy = yMin + (i / yTicks) * (yMax - yMin);
+                const py = toPxY(gy);
+                ctx.beginPath();
+                ctx.moveTo(padLeft, py);
+                ctx.lineTo(padLeft + plotW, py);
+                ctx.stroke();
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(gy.toFixed(1), padLeft - 8, py + 4);
+            }
+
+            // Draw Riemann Rectangles
+            const dx = (b - a) / n;
+            const baseY = toPxY(0);
+
+            for (let i = 0; i < n; i++) {
+                const x0 = a + i * dx;
+                const x1 = x0 + dx;
+                let sampleX = x0;
+                if (state.riemannMethod === 'right') sampleX = x1;
+                else if (state.riemannMethod === 'midpoint') sampleX = (x0 + x1) / 2;
+
+                const hVal = Math.max(0, meta.f(sampleX));
+                const rx = toPxX(x0);
+                const rw = Math.max(1, toPxX(x1) - rx);
+                const ry = toPxY(hVal);
+                const rh = baseY - ry;
+
+                ctx.fillStyle = 'rgba(79, 70, 229, 0.22)';
+                ctx.fillRect(rx, ry, rw, rh);
+
+                if (n <= 60) {
+                    ctx.strokeStyle = 'rgba(79, 70, 229, 0.65)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(rx, ry, rw, rh);
+                }
+            }
+
+            // Draw Axes
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(padLeft, padTop);
+            ctx.lineTo(padLeft, padTop + plotH);
+            ctx.lineTo(padLeft + plotW, padTop + plotH);
+            ctx.stroke();
+
+            // Draw Function Curve f(x)
+            ctx.strokeStyle = '#e11d48';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            const startCurveX = state.sandboxFn === 'inv' ? 0.35 : 0;
+            let started = false;
+            for (let px = toPxX(startCurveX); px <= padLeft + plotW; px += 2) {
+                const xVal = xMin + ((px - padLeft) / plotW) * (xMax - xMin);
+                const yVal = meta.f(xVal);
+                if (yVal <= yMax * 1.05) {
+                    const py = toPxY(yVal);
+                    if (!started) {
+                        ctx.moveTo(px, py);
+                        started = true;
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+            }
+            ctx.stroke();
+
+            // Draw Limit Boundary Markers (a and b)
+            [ { val: a, label: 'a' }, { val: b, label: 'b' } ].forEach(lim => {
+                const lx = toPxX(lim.val);
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = '#059669';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(lx, padTop);
+                ctx.lineTo(lx, baseY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#059669';
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${lim.label}=${lim.val.toFixed(1)}`, lx, padTop - 6);
+            });
+        }
+
+        // ==========================================
+        // 9. STEP-BY-STEP PROBLEM SOLVER
+        // ==========================================
+        function initSolver() {
+            const tabsContainer = document.getElementById('problem-selector-tabs');
+            tabsContainer.innerHTML = workedProblems.map(p => `
+                <button onclick="loadProblem(${p.id})" id="prob-tab-${p.id}" class="prob-tab px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${p.id === 0 ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                    ${p.shortTitle}
+                </button>
+            `).join('');
+            loadProblem(0);
+        }
+
+        function loadProblem(id) {
+            state.activeProblemId = id;
+            state.revealedStepCount = 0;
+            state.hintVisible = false;
+
+            document.querySelectorAll('.prob-tab').forEach((btn, idx) => {
+                if (idx === id) {
+                    btn.className = "prob-tab px-3 py-1.5 rounded-xl text-xs font-semibold border transition bg-slate-900 text-white border-slate-900";
+                } else {
+                    btn.className = "prob-tab px-3 py-1.5 rounded-xl text-xs font-semibold border transition bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
+                }
+            });
+
+            const prob = workedProblems[id];
+            document.getElementById('prob-tag').textContent = prob.tag;
+            document.getElementById('prob-source').textContent = prob.source;
+            document.getElementById('prob-statement').textContent = prob.statement;
+            document.getElementById('prob-math').innerHTML = prob.math;
+            document.getElementById('prob-hint-text').innerHTML = prob.hint;
+
+            const hintBox = document.getElementById('prob-hint-box');
+            hintBox.classList.add('hidden');
+            document.getElementById('hint-btn-text').textContent = "Need a Nudge? Show Hint";
+
+            renderSteps();
+            renderMath(document.getElementById('solver-section'));
+        }
+
+        function toggleHint() {
+            state.hintVisible = !state.hintVisible;
+            const hintBox = document.getElementById('prob-hint-box');
+            const btnText = document.getElementById('hint-btn-text');
+            if (state.hintVisible) {
+                hintBox.classList.remove('hidden');
+                btnText.textContent = "Hide Hint";
+                renderMath(hintBox);
+            } else {
+                hintBox.classList.add('hidden');
+                btnText.textContent = "Need a Nudge? Show Hint";
+            }
+        }
+
+        function revealNextStep() {
+            const prob = workedProblems[state.activeProblemId];
+            if (state.revealedStepCount < prob.steps.length) {
+                state.revealedStepCount++;
+                renderSteps();
+            }
+        }
+
+        function revealAllSteps() {
+            const prob = workedProblems[state.activeProblemId];
+            state.revealedStepCount = prob.steps.length;
+            renderSteps();
+        }
+
+        function resetSteps() {
+            state.revealedStepCount = 0;
+            renderSteps();
+        }
+
+        function renderSteps() {
+            const prob = workedProblems[state.activeProblemId];
+            const container = document.getElementById('steps-container');
+            const nextBtn = document.getElementById('next-step-btn');
+
+            if (state.revealedStepCount === 0) {
+                container.innerHTML = `
+                    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-400 text-sm">
+                        Try solving this on paper first, then click <strong>"Reveal Step 1"</strong> to check your approach!
+                    </div>
+                `;
+            } else {
+                container.innerHTML = prob.steps.slice(0, state.revealedStepCount).map((s, idx) => {
+                    const isFinal = idx === prob.steps.length - 1;
+                    return `
+                        <div class="fade-in rounded-xl border ${isFinal ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200 bg-slate-50/60'} p-4 sm:p-5">
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <span class="px-2.5 py-0.5 rounded-md text-xs font-bold ${isFinal ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white'}">
+                                    Step ${idx + 1} ${isFinal ? '• Final Answer' : ''}
+                                </span>
+                                <h4 class="font-bold text-sm text-slate-900">${s.title}</h4>
+                            </div>
+                            <div class="text-sm text-slate-700 overflow-x-auto pl-1">${s.detail}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (state.revealedStepCount >= prob.steps.length) {
+                nextBtn.disabled = true;
+                nextBtn.className = "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-200 text-slate-500 text-xs font-bold cursor-not-allowed";
+                nextBtn.innerHTML = `<span>All Steps Revealed</span>`;
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.className = "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow-sm";
+                nextBtn.innerHTML = `<span>Reveal Step ${state.revealedStepCount + 1}</span><i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>`;
+            }
+
+            lucide.createIcons();
+            renderMath(container);
+        }
+
+        // ==========================================
+        // 10. FORMULA & PROPERTY VAULT
+        // ==========================================
+        function setVaultCategory(cat) {
+            state.vaultCategory = cat;
+            document.querySelectorAll('.vault-cat-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = "vault-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition";
+                } else {
+                    btn.className = "vault-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+                }
+            });
+            filterVault();
+        }
+
+        function filterVault() {
+            const query = document.getElementById('vault-search').value.toLowerCase().trim();
+            const grid = document.getElementById('vault-grid');
+
+            const filtered = vaultFormulas.filter(item => {
+                const matchCat = state.vaultCategory === 'all' || item.category === state.vaultCategory;
+                const matchText = !query ||
+                    item.title.toLowerCase().includes(query) ||
+                    item.note.toLowerCase().includes(query) ||
+                    item.latex.toLowerCase().includes(query) ||
+                    item.badge.toLowerCase().includes(query);
+                return matchCat && matchText;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400 text-sm">No formulas match "${query}". Try searching for "sin", "King", "ILATE", or "a^2".</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => `
+                <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs hover:border-brand-300 transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-sm text-slate-900">${item.title}</h4>
+                            <span class="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 text-[10px] font-bold whitespace-nowrap">${item.badge}</span>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 text-sm overflow-x-auto my-2">
+                            ${item.latex}
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed mt-1">${item.note}</p>
+                </div>
+            `).join('');
+
+            renderMath(grid);
+        }
+
+        // ==========================================
+        // 11. ADAPTIVE PRACTICE QUIZ ENGINE
+        // ==========================================
+        function setQuizLevel(lvl) {
+            state.quizLevel = lvl;
+            state.quizIndex = 0;
+            state.quizAnswered = false;
+
+            document.querySelectorAll('.q-lvl-btn').forEach((btn, idx) => {
+                if (idx + 1 === lvl) {
+                    btn.className = "q-lvl-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-brand-600 shadow-2xs transition";
+                } else {
+                    btn.className = "q-lvl-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+                }
+            });
+
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const questions = quizBank[state.quizLevel];
+            const qObj = questions[state.quizIndex];
+            state.quizAnswered = false;
+
+            document.getElementById('quiz-progress-label').textContent = `Question ${state.quizIndex + 1} of ${questions.length} • Level ${state.quizLevel}`;
+            document.getElementById('quiz-topic-tag').textContent = qObj.topic;
+            document.getElementById('quiz-question-text').innerHTML = qObj.q;
+
+            const feedbackBox = document.getElementById('quiz-feedback');
+            feedbackBox.classList.add('hidden');
+
+            const letters = ['A', 'B', 'C', 'D'];
+            const optionsGrid = document.getElementById('quiz-options-grid');
+            optionsGrid.innerHTML = qObj.options.map((opt, idx) => `
+                <button onclick="submitQuizAnswer(${idx})" id="quiz-opt-${idx}" class="quiz-opt-btn flex items-center gap-3 p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-brand-400 hover:bg-brand-50/30 text-left transition">
+                    <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">${letters[idx]}</span>
+                    <span class="text-sm font-medium text-slate-800">${opt}</span>
+                </button>
+            `).join('');
+
+            renderMath(document.getElementById('quiz-card'));
+        }
+
+        function submitQuizAnswer(selectedIdx) {
+            if (state.quizAnswered) return;
+            state.quizAnswered = true;
+
+            const questions = quizBank[state.quizLevel];
+            const qObj = questions[state.quizIndex];
+            const isCorrect = selectedIdx === qObj.correct;
+
+            // Style all option buttons
+            qObj.options.forEach((_, idx) => {
+                const btn = document.getElementById(`quiz-opt-${idx}`);
+                btn.disabled = true;
+                if (idx === qObj.correct) {
+                    btn.className = "quiz-opt-btn flex items-center gap-3 p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-left";
+                } else if (idx === selectedIdx && !isCorrect) {
+                    btn.className = "quiz-opt-btn flex items-center gap-3 p-4 rounded-xl border-2 border-rose-500 bg-rose-50 text-left";
+                } else {
+                    btn.className = "quiz-opt-btn flex items-center gap-3 p-4 rounded-xl border border-slate-200 bg-slate-50 opacity-60 text-left";
+                }
+            });
+
+            // Update XP & Streak
+            if (isCorrect) {
+                state.xp = Math.min(400, state.xp + 25);
+                state.streak += 1;
+            } else {
+                state.streak = 0;
+            }
+            updateScoreUI();
+
+            // Display Explanation Box
+            const feedbackBox = document.getElementById('quiz-feedback');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const feedbackExp = document.getElementById('quiz-feedback-explanation');
+            const feedbackIcon = document.getElementById('quiz-feedback-icon');
+
+            feedbackBox.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackBox.className = "rounded-2xl p-5 border border-emerald-200 bg-emerald-50/70 text-emerald-950 fade-in";
+                feedbackTitle.textContent = "Spot On! (+25 XP)";
+                feedbackIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>`;
+            } else {
+                feedbackBox.className = "rounded-2xl p-5 border border-rose-200 bg-rose-50/70 text-rose-950 fade-in";
+                feedbackTitle.textContent = "Not Quite — Review the Step-by-Step Solution:";
+                feedbackIcon.innerHTML = `<i data-lucide="x-circle" class="w-5 h-5 text-rose-600"></i>`;
+            }
+
+            feedbackExp.innerHTML = qObj.explanation;
+            lucide.createIcons();
+            renderMath(feedbackBox);
+        }
+
+        function nextQuizQuestion() {
+            const questions = quizBank[state.quizLevel];
+            state.quizIndex = (state.quizIndex + 1) % questions.length;
+            renderQuizQuestion();
+        }
+
+        function updateScoreUI() {
+            document.getElementById('desktop-xp').textContent = state.xp;
+            document.getElementById('mobile-xp').textContent = `${state.xp} XP`;
+            document.getElementById('desktop-streak').textContent = state.streak;
+            document.getElementById('mobile-streak').textContent = state.streak;
+        }
+
+        // ==========================================
+        // 12. INITIALIZATION ON WINDOW LOAD
+        // ==========================================
+        window.onload = function () {
+            lucide.createIcons();
+
+            // Bind sandbox sliders
+            document.getElementById('slider-a').addEventListener('input', updateSandbox);
+            document.getElementById('slider-b').addEventListener('input', updateSandbox);
+            document.getElementById('slider-n').addEventListener('input', updateSandbox);
+
+            // Handle responsive canvas resizing
+            window.addEventListener('resize', drawRiemannCanvas);
+
+            // Initialize all modules
+            selectLevel(1);
+            updateSandbox();
+            initSolver();
+            filterVault();
+            renderQuizQuestion();
+
+            // Final pass of KaTeX across the document
+            setTimeout(() => renderMath(document.body), 100);
+        };
+    </script>
+</body>
+</html>
